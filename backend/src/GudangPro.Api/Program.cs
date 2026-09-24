@@ -33,11 +33,44 @@ try
     var connString = builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+    var isPostgres = connString.Contains("Host=", StringComparison.OrdinalIgnoreCase) ||
+                     connString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+                     connString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase);
+
+    if (isPostgres && (connString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+                       connString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase)))
+    {
+        try
+        {
+            var uri = new Uri(connString);
+            var userInfo = uri.UserInfo.Split(':', 2);
+            var username = Uri.UnescapeDataString(userInfo[0]);
+            var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+            var host = uri.Host;
+            var dbPort = uri.Port > 0 ? uri.Port : 5432;
+            var database = uri.AbsolutePath.TrimStart('/');
+            if (string.IsNullOrEmpty(database)) database = "postgres";
+
+            var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
+            {
+                Host = host,
+                Port = dbPort,
+                Database = database,
+                Username = username,
+                Password = password,
+                SslMode = Npgsql.SslMode.Require
+            };
+            connString = npgsqlBuilder.ConnectionString;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to parse postgresql URI, using raw connection string");
+        }
+    }
+
     builder.Services.AddDbContext<AppDbContext>(options =>
     {
-        if (connString.Contains("Host=", StringComparison.OrdinalIgnoreCase) ||
-            connString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
-            connString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        if (isPostgres)
         {
             options.UseNpgsql(connString, sql => sql.MigrationsAssembly("GudangPro.Infrastructure"));
         }
