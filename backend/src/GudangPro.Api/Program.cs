@@ -68,6 +68,11 @@ try
         }
     }
 
+    if (connString.Contains("db.", StringComparison.OrdinalIgnoreCase) && connString.Contains(".supabase.co", StringComparison.OrdinalIgnoreCase))
+    {
+        Log.Warning("NOTE: 'db.*.supabase.co' is IPv6-only. On Render (IPv4-only), use Supabase Connection Pooler host ('aws-0-*.pooler.supabase.co:5432') with username 'postgres.[PROJECT-REF]'.");
+    }
+
     builder.Services.AddDbContext<AppDbContext>(options =>
     {
         if (isPostgres)
@@ -164,12 +169,19 @@ try
     // Serilog request logging
     app.UseSerilogRequestLogging();
 
-    // Otomatis migrate & seed database saat start
-    using (var scope = app.Services.CreateScope())
+    // Otomatis migrate & seed database saat start (non-blocking jika database lambat start)
+    try
     {
+        using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Log.Information("Checking database schema and seed data...");
         await db.Database.EnsureCreatedAsync();
         await DbInitializer.SeedAsync(db);
+        Log.Information("Database successfully initialized and ready.");
+    }
+    catch (Exception dbEx)
+    {
+        Log.Error(dbEx, "Database initialization warning: Could not initialize database on startup. Please check connection string / IPv4 pooler settings.");
     }
 
     // Swagger UI enabled for demo testing
@@ -187,7 +199,9 @@ try
 
     app.MapControllers();
 
-    app.Run();
+    var serverPort = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+    Log.Information("GudangPro API listening on http://0.0.0.0:{Port}", serverPort);
+    app.Run($"http://0.0.0.0:{serverPort}");
 }
 catch (Exception ex)
 {

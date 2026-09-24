@@ -41,19 +41,19 @@ Karena Anda sudah memiliki akun Supabase, kita gunakan Supabase sebagai database
    - **Database Password:** Buat password yang kuat (dan catat password ini!)
    - **Region:** Pilih region terdekat (misal: `Singapore (ap-southeast-1)`)
 3. Tunggu ~1-2 menit hingga status database aktif (*Provisioning* selesai).
-4. Ambil **Connection String**:
-   - Buka menu **Project Settings** (ikon gear di sidebar kiri) > **Database**.
-   - Gulir ke bawah ke bagian **Connection string**.
-   - Pilih tab **URI** atau **ADO.NET**.
-   - Contoh format URI:
+4. Ambil **Connection String (Wajib gunakan Connection Pooler / IPv4)**:
+   - Klik tombol **Connect** di bagian atas dashboard Supabase (atau Project Settings > Database).
+   - Pilih bagian **Connection Pooling** (atau tab **Session Mode**, port 5432).
+   - *(PENTING: Jangan gunakan Direct Connection `db.*.supabase.co` karena Supabase direct hanya mendukung IPv6, sedangkan Render menggunakan IPv4).*
+   - Contoh format URI (Pooler):
      ```text
-     postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+     postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres
      ```
-   - Contoh format ADO.NET (Standard):
+   - Atau contoh format ADO.NET:
      ```text
-     Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.[PROJECT-REF];Password=[YOUR-PASSWORD];SSL Mode=Require;Trust Server Certificate=true;
+     Host=aws-0-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.[PROJECT-REF];Password=[YOUR-PASSWORD];SSL Mode=Require;
      ```
-   *(Ganti `[YOUR-PASSWORD]` dengan password yang Anda buat di langkah 2)*.
+   *(Ganti `[PROJECT-REF]` dengan ID project Anda dan `[YOUR-PASSWORD]` dengan password database Anda)*.
 
 > 💡 **Info:** Anda tidak perlu menjalankan script SQL manual apa pun! Backend .NET akan otomatis mendeteksi database kosong, membuat seluruh tabel (`Items`, `StockLevels`, `Transactions`, dll.), serta mengisikan data awal (seeder) secara otomatis.
 

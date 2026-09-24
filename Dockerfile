@@ -19,8 +19,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /out .
 
-ENV ASPNETCORE_URLS=http://+:5000
 ENV ASPNETCORE_ENVIRONMENT=Development
-EXPOSE 5000
+EXPOSE 5000 10000
 
 ENTRYPOINT ["dotnet", "GudangPro.Api.dll"]
