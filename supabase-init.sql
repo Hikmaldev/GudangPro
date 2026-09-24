@@ -124,9 +124,9 @@ BEGIN
         -- Seed Users (BCrypt hashes for admin123, sari123, hendra123)
         INSERT INTO "Users" ("Id", "Username", "FullName", "Role", "PasswordHash", "IsActive", "LastLoginAt")
         VALUES 
-        (1, 'admin', 'Budi Santoso', 'Admin Gudang', '$2a$11$N5J1c7Z20Vj7mXn7fT2eIOm6kPqmI01s3D8vS9X70qJt6k1c3u6iW', TRUE, NOW() - INTERVAL '2 hours'),
-        (2, 'sari', 'Sari Wulandari', 'Staf Gudang', '$2a$11$r43lC1.jQYg2pX9.Zg9mfeIqP12jT6k7vV4eM2l9xN70qJt6k1c3u', TRUE, NOW() - INTERVAL '5 hours'),
-        (3, 'hendra', 'Hendra Wijaya', 'Pemilik', '$2a$11$m28jR5.kXZl4pQ2.Ag7mfeLqP15jT8k9vW5eN3l8xO81qKt7l2d4v', TRUE, NOW() - INTERVAL '1 day');
+        (1, 'admin', 'Budi Santoso', 'Admin Gudang', '$2a$11$M32NodrFIfHt1DN8M3xun.nqpmchvhUgbT81c/TOqd0kjUAZ1usvS', TRUE, NOW() - INTERVAL '2 hours'),
+        (2, 'sari', 'Sari Wulandari', 'Staf Gudang', '$2a$11$K6r17DguVUp7bQlwtGtzheSzANCxTNKF2RcNUFakIGdnxejDoqAti', TRUE, NOW() - INTERVAL '5 hours'),
+        (3, 'hendra', 'Hendra Wijaya', 'Pemilik', '$2a$11$xu/guuEr1K8QR1aGLvqvC.49mJjYobZVs0OBtiE7zh5R3AqgG1bwy', TRUE, NOW() - INTERVAL '1 day');
         PERFORM setval(pg_get_serial_sequence('"Users"', 'Id'), 3);
 
         -- Seed Warehouses
