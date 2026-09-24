@@ -1,0 +1,184 @@
+<div class="content">
+  <section class="welcome-row">
+    <div>
+      <p class="eyebrow">{{ today }}</p>
+      <h1>Selamat pagi, {{ user()?.fullName?.split(' ')?.at(0) || 'Pengguna' }} <span>👋</span></h1>
+      <p class="subtitle">Berikut ringkasan kondisi inventori gudang hari ini.</p>
+    </div>
+    <div class="header-actions">
+      <label class="warehouse-select">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <select aria-label="Pilih gudang" (change)="onWarehouseFilter($any($event.target).value)">
+          <option value="all">Semua Gudang</option>
+          @for (wh of warehouses(); track wh.id) {
+            <option [value]="wh.id">{{ wh.name }}</option>
+          }
+        </select>
+      </label>
+      <button class="btn primary" routerLink="/barang-masuk"><span>＋</span> Transaksi Baru</button>
+    </div>
+  </section>
+
+  <section class="stat-grid" aria-label="Ringkasan inventori">
+    <article class="stat-card">
+      <div class="stat-top"><span>Total Jenis Barang</span><div class="stat-icon blue">▦</div></div>
+      <div class="stat-value">{{ formatNumber(summary().totalItems) }}</div>
+      <div class="stat-foot positive"><span>↗ {{ summary().itemDelta }}%</span><small>vs bulan lalu</small></div>
+    </article>
+    <article class="stat-card">
+      <div class="stat-top"><span>Transaksi Hari Ini</span><div class="stat-icon purple">⇄</div></div>
+      <div class="stat-value">{{ summary().transactionsToday }}</div>
+      <div class="stat-foot positive"><span>↗ {{ summary().transactionDelta }}%</span><small>vs kemarin</small></div>
+    </article>
+    <article class="stat-card">
+      <div class="stat-top"><span>Stok Menipis</span><div class="stat-icon orange">!</div></div>
+      <div class="stat-value">{{ summary().lowStockCount }}</div>
+      <div class="stat-foot negative"><span>↑ 4 barang</span><small>perlu perhatian</small></div>
+    </article>
+    <article class="stat-card">
+      <div class="stat-top"><span>Total Nilai Stok</span><div class="stat-icon green">◈</div></div>
+      <div class="stat-value">{{ formatCurrency(summary().stockValue) }}</div>
+      <div class="stat-foot positive"><span>↗ {{ summary().valueDelta }}%</span><small>vs bulan lalu</small></div>
+    </article>
+  </section>
+
+  <section class="grid-2">
+    <article class="card">
+      <div class="split">
+        <div>
+          <h2>Distribusi Stok</h2>
+          <p class="card-sub">Jumlah stok berdasarkan kategori</p>
+        </div>
+        <button class="btn icon-only" aria-label="Menu distribusi stok">•••</button>
+      </div>
+      <div class="donut-wrap">
+        <div class="donut">
+          <div class="donut-hole">
+            <strong>{{ formatNumber(totalCategoryUnits()) }}</strong>
+            <span>Total Unit</span>
+          </div>
+        </div>
+        <div class="legend">
+          @for (cat of categoryStock(); track cat.name) {
+            <div>
+              <i class="dot" [style.background]="cat.color"></i>
+              <span>{{ cat.name }}</span>
+              <strong>{{ cat.percentage }}%</strong>
+            </div>
+          }
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="split">
+        <div>
+          <h2>Tren Transaksi</h2>
+          <p class="card-sub">Aktivitas barang masuk dan keluar</p>
+        </div>
+        <div class="period-tabs">
+          <button class="active">7 Hari</button>
+          <button>30 Hari</button>
+          <button>3 Bulan</button>
+        </div>
+      </div>
+      <div class="chart-legend">
+        <span><i class="line-dot incoming"></i>Barang Masuk</span>
+        <span><i class="line-dot outgoing"></i>Barang Keluar</span>
+      </div>
+      <div class="line-chart">
+        <div class="y-labels">
+          <span>120</span><span>90</span><span>60</span><span>30</span><span>0</span>
+        </div>
+        <svg viewBox="0 0 700 210" preserveAspectRatio="none" aria-label="Grafik tren transaksi">
+          <defs>
+            <linearGradient id="fillBlue" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="#3d7eff" stop-opacity="0.18"/>
+              <stop offset="1" stop-color="#3d7eff" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <g class="grid-lines">
+            <path d="M0 10H700M0 57H700M0 104H700M0 151H700M0 198H700"/>
+          </g>
+          <path class="area" d="M0 125 L100 92 L200 108 L300 70 L400 88 L500 42 L600 65 L700 28 V198 H0Z"/>
+          <path class="chart-line blue-line" d="M0 125 L100 92 L200 108 L300 70 L400 88 L500 42 L600 65 L700 28"/>
+          <path class="chart-line pink-line" d="M0 155 L100 130 L200 145 L300 118 L400 136 L500 104 L600 120 L700 93"/>
+          <g class="chart-points">
+            <circle cx="500" cy="42" r="4"/>
+            <circle cx="700" cy="28" r="4"/>
+          </g>
+        </svg>
+        <div class="x-labels">
+          @for (point of trend(); track point.label) {
+            <span>{{ point.label }}</span>
+          }
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="grid-2-1 mt-20">
+    <article class="card">
+      <div class="split">
+        <div>
+          <h2>Stok Menipis</h2>
+          <p class="card-sub">Barang yang perlu segera ditindaklanjuti</p>
+        </div>
+        <a class="btn" routerLink="/notifikasi">Lihat semua <span>→</span></a>
+      </div>
+      <div class="alert-list">
+        @for (alert of criticalAlerts(); track alert.id) {
+          <div class="alert-item">
+            <div class="item-icon" [class.red-bg]="alert.level === 'kritis'" [class.yellow-bg]="alert.level === 'menipis'">
+              {{ alert.itemName.substring(0, 2).toUpperCase() }}
+            </div>
+            <div class="item-info">
+              <strong>{{ alert.itemName }}</strong>
+              <span>{{ alert.warehouseName }} · {{ alert.message }}</span>
+            </div>
+            <div class="stock-status">
+              <strong [class.critical]="alert.level === 'kritis'" [class.warning]="alert.level === 'menipis'">
+                {{ alert.level === 'kritis' ? 'Kritis' : 'Menipis' }}
+              </strong>
+              <span class="status-pill" [class.critical-pill]="alert.level === 'kritis'" [class.warning-pill]="alert.level === 'menipis'">
+                {{ alert.level === 'kritis' ? 'Kritis' : 'Menipis' }}
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="split">
+        <div>
+          <h2>Aktivitas Terbaru</h2>
+          <p class="card-sub">Transaksi yang baru saja tercatat</p>
+        </div>
+        <a class="btn" routerLink="/riwayat">Lihat riwayat <span>→</span></a>
+      </div>
+      <div class="activity-list">
+        @for (tx of recentTransactions(); track tx.id) {
+          <div class="activity">
+            <div class="activity-icon" [class.incoming-icon]="tx.type === 'IN'" [class.outgoing-icon]="tx.type === 'OUT'" [class.adjust-icon]="tx.type === 'ADJUST'">
+              {{ tx.type === 'IN' ? '↓' : tx.type === 'OUT' ? '↑' : '↻' }}
+            </div>
+            <div>
+              <strong>
+                {{ tx.type === 'IN' ? 'Barang masuk' : tx.type === 'OUT' ? 'Barang keluar' : 'Penyesuaian stok' }}
+                <b>{{ tx.transactionNo }}</b>
+              </strong>
+              <span>{{ tx.lines[0]?.itemName }} · {{ tx.lines[0]?.quantity }} {{ tx.lines[0]?.unitName }}</span>
+              <small>{{ tx.createdAt }} · oleh {{ tx.createdBy }}</small>
+            </div>
+          </div>
+        }
+      </div>
+    </article>
+  </section>
+
+  <footer class="page-footer">
+    <span>© 2026 GudangPro. Sistem Manajemen Inventori.</span>
+    <span>Terakhir diperbarui: <strong>2 menit lalu</strong> <i class="online-dot"></i></span>
+  </footer>
+</div>

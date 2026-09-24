@@ -1,0 +1,47 @@
+<div class="content">
+  <div class="page-head">
+    <div>
+      <h1>Notifikasi</h1>
+      <p>Pantau alert stok dan aktivitas penting sistem.</p>
+    </div>
+    <button class="btn" (click)="markAllRead()">Tandai semua dibaca</button>
+  </div>
+
+  <div class="grid-2-3">
+    <section class="card">
+      <div class="toolbar">
+        <h2>Notifikasi terbaru</h2>
+        <select (change)="filter.set(($any($event.target).value))">
+          <option value="Semua">Semua notifikasi</option>
+          <option value="Belum dibaca">Belum dibaca</option>
+          <option value="kritis">Stok kritis</option>
+          <option value="menipis">Stok menipis</option>
+        </select>
+      </div>
+      @for (alert of visible(); track alert.id) {
+        <div class="alert-row">
+          <div class="alert-icon" [class.critical]="alert.level === 'kritis'" [class.warning]="alert.level === 'menipis'">{{ levelIcon(alert.level) }}</div>
+          <main>
+            <strong>{{ alert.message }}</strong>
+            <small>{{ alert.itemName }} · {{ alert.warehouseName }} · {{ alert.createdAt }}</small>
+          </main>
+          @if (!alert.isRead) {
+            <span class="pill" [class.red]="alert.level === 'kritis'" [class.yellow]="alert.level === 'menipis'">{{ alert.level === 'kritis' ? 'Kritis' : 'Menipis' }}</span>
+            <button class="btn" (click)="markRead(alert.level, alert.id)">Baca</button>
+          } @else {
+            <span class="pill green">Dibaca</span>
+          }
+        </div>
+      } @empty {
+        <p class="muted" style="padding:20px 0;text-align:center">Tidak ada notifikasi.</p>
+      }
+    </section>
+
+    <section class="card">
+      <h2>Ringkasan alert</h2>
+      <div class="stat-card mb-12"><span>Alert belum dibaca</span><strong style="color:#e3626e">{{ unreadCount() }}</strong><small class="down">Perlu tindakan</small></div>
+      <div class="stat-card mb-12"><span>Stok kritis</span><strong style="color:#e3626e">{{ criticalCount() }}</strong><small class="down">Segera restock</small></div>
+      <div class="stat-card"><span>Stok menipis</span><strong style="color:#e9a435">{{ warningCount() }}</strong><small class="warn">Pantau stok</small></div>
+    </section>
+  </div>
+</div>

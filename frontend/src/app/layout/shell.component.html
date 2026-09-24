@@ -1,0 +1,16 @@
+<div class="app-shell">
+  <aside class="sidebar" [class.open]="menuOpen()">
+    <div class="brand"><div class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></div><div><b>Gudang<em>Pro</em></b><small>INVENTORY SYSTEM</small></div></div>
+    <div class="nav-label">MENU UTAMA</div><nav class="nav" aria-label="Menu utama">
+      @for (item of visible(primary); track item.route) { <a [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()"><span aria-hidden="true">{{ item.icon }}</span>{{ item.label }}</a> }
+    </nav>
+    <div class="nav-label other">LAINNYA</div><nav class="nav" aria-label="Menu lainnya">
+      @for (item of visible(secondary()); track item.route) { <a [routerLink]="item.route" routerLinkActive="active" (click)="closeMenu()"><span aria-hidden="true">{{ item.icon }}</span>{{ item.label }} @if (item.badge) { <b class="nav-badge">{{ item.badge }}</b> }</a> }
+    </nav>
+    <div class="side-help"><b>Butuh bantuan?</b><small>Hubungi administrator sistem</small></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><button class="mobile-menu" (click)="toggleMenu()" aria-label="Buka menu">☰</button><div class="crumb">Workspace <b>/ {{ pageTitle() }}</b></div><div class="user"><div class="avatar">{{ initials() }}</div><div><strong>{{ user()?.fullName ?? 'Budi Santoso' }}</strong><small>{{ user()?.role ?? 'Admin Gudang' }}</small></div><button class="btn icon-only" (click)="logout()" aria-label="Keluar">↪</button></div></header>
+    <router-outlet />
+  </main>
+</div>

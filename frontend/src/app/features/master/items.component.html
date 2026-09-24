@@ -1,0 +1,95 @@
+<div class="content">
+  <div class="page-head">
+    <div>
+      <h1>Data Barang</h1>
+      <p>Kelola daftar barang dan stok minimum di semua gudang.</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn" (click)="exportStock()">↓ Ekspor Stok CSV</button>
+      <button class="btn primary" (click)="openAdd()">＋ Tambah Barang</button>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><span>Total Jenis Barang</span><strong>{{ totalItems().toLocaleString('id-ID') }}</strong><small class="up">↑ 8.2% bulan ini</small></div>
+    <div class="stat-card"><span>Barang Aktif</span><strong>{{ activeItems().toLocaleString('id-ID') }}</strong><small class="muted">98.1% dari total</small></div>
+    <div class="stat-card"><span>Stok Menipis</span><strong style="color:#e9a435">{{ lowStockCount() }}</strong><small class="warn">Perlu perhatian</small></div>
+    <div class="stat-card"><span>Barang Nonaktif</span><strong>{{ inactiveCount() }}</strong><small class="muted">Tidak digunakan</small></div>
+  </div>
+
+  @if (showForm()) {
+    <section class="card mb-20">
+      <div class="split">
+        <h2>{{ editing() ? 'Ubah Barang' : 'Tambah Barang' }}</h2>
+        <button class="btn" (click)="showForm.set(false)">Tutup</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid mt-16">
+        <div class="field"><label>Kode Barang *</label><input formControlName="code" placeholder="cth. BB-RS-002"><span class="err">@if (form.get('code')?.invalid && form.get('code')?.touched) { Kode wajib diisi }</span></div>
+        <div class="field"><label>Nama Barang *</label><input formControlName="name" placeholder="Nama barang"><span class="err">@if (form.get('name')?.invalid && form.get('name')?.touched) { Nama wajib diisi }</span></div>
+        <div class="field">
+          <label>Kategori</label>
+          <select formControlName="categoryName">
+            @for (cat of categories(); track cat.id) {
+              <option [value]="cat.name">{{ cat.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label>Satuan</label>
+          <select formControlName="unitName">
+            @for (unit of units(); track unit.id) {
+              <option [value]="unit.name">{{ unit.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="field"><label>Stok Minimum *</label><input type="number" formControlName="minStock" min="0"><span class="err">@if (form.get('minStock')?.invalid && form.get('minStock')?.touched) { Min. 0 }</span></div>
+        <div class="field"><label>Gudang</label><select formControlName="warehouseName"><option>Gudang Utama</option><option>Gudang Bahan Baku</option><option>Gudang Suku Cadang</option></select></div>
+        <div class="full right"><button class="btn" type="button" (click)="showForm.set(false)">Batal</button> <button class="btn primary" type="submit">{{ editing() ? 'Simpan Perubahan' : 'Simpan Barang' }}</button></div>
+      </form>
+    </section>
+  }
+
+  <section class="card">
+    <div class="toolbar">
+      <div class="search"><input #queryInput placeholder="Cari kode atau nama barang..." (input)="search.set(queryInput.value)"></div>
+      <div class="filters">
+        <select (change)="status.set(($any($event.target).value))">
+          <option value="Semua">Status: Semua</option>
+          <option value="Aktif">Aktif</option>
+          <option value="Nonaktif">Nonaktif</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="fluid">
+        <thead>
+          <tr><th>KODE BARANG</th><th>NAMA BARANG</th><th>KATEGORI</th><th>SATUAN</th><th>STOK MINIMUM</th><th>STATUS</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.id) {
+            <tr>
+              <td><strong>{{ item.code }}</strong></td>
+              <td><div class="item-cell"><div class="item-avatar">{{ item.name.substring(0, 2).toUpperCase() }}</div><strong>{{ item.name }}</strong></div></td>
+              <td>{{ item.categoryName }}</td>
+              <td>{{ item.unitName }}</td>
+              <td>{{ item.minStock }}</td>
+              <td><span class="pill" [class.green]="item.isActive" [class.gray]="!item.isActive">{{ item.isActive ? 'Aktif' : 'Nonaktif' }}</span></td>
+              <td>
+                @if (item.isActive) {
+                  <button class="btn icon-only" (click)="openEdit(item)" aria-label="Ubah">✎</button>
+                  <button class="btn icon-only danger" (click)="deactivate(item)" aria-label="Nonaktifkan">⛔</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="7" class="muted" style="text-align:center;padding:30px">Tidak ada barang ditemukan.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <span>Menampilkan {{ items().length }} dari {{ totalItems().toLocaleString('id-ID') }} barang</span>
+      <div class="pages"><button class="active">1</button><button>2</button><button>3</button><button>...</button><button>250</button></div>
+    </div>
+  </section>
+</div>

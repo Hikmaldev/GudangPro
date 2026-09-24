@@ -1,0 +1,60 @@
+<div class="content">
+  <div class="page-head">
+    <div>
+      <h1>Audit Log</h1>
+      <p>Jejak perubahan data dan aktivitas pengguna dalam sistem.</p>
+    </div>
+  </div>
+
+  <section class="card">
+    <div class="toolbar">
+      <div class="search"><input #s placeholder="Cari aktivitas, pengguna, atau entitas..." (input)="search.set(s.value)"></div>
+      <div class="filters">
+        <select (change)="action.set(($any($event.target).value))">
+          <option value="Semua">Semua aktivitas</option>
+          <option value="Membuat">Membuat</option>
+          <option value="Mengubah">Mengubah</option>
+          <option value="Membatalkan">Membatalkan</option>
+          <option value="Menonaktifkan">Menonaktifkan</option>
+          <option value="Login">Login</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="fluid">
+        <thead>
+          <tr><th>WAKTU</th><th>PENGGUNA</th><th>AKSI</th><th>ENTITAS</th><th>DETAIL PERUBAHAN</th><th>ALAMAT IP</th></tr>
+        </thead>
+        <tbody>
+          @for (log of visible(); track log.id) {
+            <tr>
+              <td>{{ log.createdAt }}</td>
+              <td>
+                <strong>{{ log.userFullName }}</strong>
+                <span class="muted">{{ log.username }}</span>
+              </td>
+              <td>
+                <span class="pill"
+                  [class.green]="log.action === 'Membuat' || log.action === 'Login'"
+                  [class.blue]="log.action === 'Mengubah'"
+                  [class.red]="log.action === 'Membatalkan' || log.action === 'KunciAkun'"
+                  [class.yellow]="log.action === 'Menonaktifkan'">
+                  {{ log.action }}
+                </span>
+              </td>
+              <td>{{ log.entityName }}</td>
+              <td>{{ log.detail }}</td>
+              <td>{{ log.ipAddress }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="muted" style="text-align:center;padding:30px">Tidak ada aktivitas ditemukan.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <span>Menampilkan {{ visible().length }} dari {{ logs().length }} aktivitas</span>
+      <div class="pages"><button class="active">1</button><button>2</button><button>3</button></div>
+    </div>
+  </section>
+</div>

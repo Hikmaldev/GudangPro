@@ -1,0 +1,59 @@
+<div class="content">
+  <div class="page-head">
+    <div>
+      <h1>Riwayat Transaksi</h1>
+      <p>Lihat dan telusuri seluruh mutasi stok.</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn" (click)="exportTransactions()">↓ Ekspor CSV</button>
+    </div>
+  </div>
+
+  <section class="card">
+    <div class="toolbar">
+      <div class="search"><input #s placeholder="Cari nomor transaksi, barang..." (input)="search.set(s.value)"></div>
+      <div class="filters">
+        <select (change)="type.set(($any($event.target).value))">
+          <option value="Semua">Semua Jenis</option>
+          <option value="IN">Barang Masuk</option>
+          <option value="OUT">Barang Keluar</option>
+          <option value="ADJUST">Penyesuaian</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="fluid">
+        <thead>
+          <tr><th>NOMOR TRANSAKSI</th><th>JENIS</th><th>WAKTU</th><th>GUDANG</th><th>REFERENSI</th><th>ITEM</th><th>DIBUAT OLEH</th><th>STATUS</th></tr>
+        </thead>
+        <tbody>
+          @for (tx of visible(); track tx.id) {
+            <tr>
+              <td><strong>{{ tx.transactionNo }}</strong></td>
+              <td>
+                <span class="pill" [class.green]="tx.type === 'IN'" [class.red]="tx.type === 'OUT'" [class.blue]="tx.type === 'ADJUST'">{{ typeLabel(tx.type) }}</span>
+              </td>
+              <td>{{ tx.createdAt }}</td>
+              <td>{{ tx.warehouseName }}</td>
+              <td>{{ tx.referenceNo }}</td>
+              <td>{{ tx.lines.length }} item · {{ totalQty(tx.lines) }} unit</td>
+              <td>{{ tx.createdBy }}</td>
+              <td>
+                <span class="pill" [class.green]="tx.status === 'Berhasil'" [class.red]="tx.status === 'Dibatalkan'">{{ tx.status }}</span>
+                @if (tx.status === 'Berhasil' && tx.type !== 'ADJUST') {
+                  <button class="btn icon-only" style="color:#e3626e;margin-left:6px;padding:2px 6px;font-size:11px" (click)="cancel(tx)" title="Batalkan Transaksi">✕</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Tidak ada transaksi ditemukan.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <span>Menampilkan {{ visible().length }} dari {{ all().length }} transaksi</span>
+      <div class="pages"><button class="active">1</button><button>2</button><button>3</button><button>...</button><button>29</button></div>
+    </div>
+  </section>
+</div>

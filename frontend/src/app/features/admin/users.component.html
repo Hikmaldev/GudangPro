@@ -1,0 +1,66 @@
+<div class="content">
+  <div class="page-head">
+    <div>
+      <h1>Manajemen Pengguna</h1>
+      <p>Atur akun, peran, dan akses gudang pengguna.</p>
+    </div>
+    <button class="btn primary" (click)="showForm.set(true)">＋ Tambah Pengguna</button>
+  </div>
+
+  @if (showForm()) {
+    <section class="card mb-20">
+      <div class="split"><h2>Tambah Pengguna</h2><button class="btn" (click)="showForm.set(false)">Tutup</button></div>
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid mt-16">
+        <div class="field"><label>Nama Lengkap *</label><input formControlName="fullName" placeholder="Nama lengkap"><span class="err">@if (form.get('fullName')?.invalid && form.get('fullName')?.touched) { Wajib diisi }</span></div>
+        <div class="field"><label>Username *</label><input formControlName="username" placeholder="username"><span class="err">@if (form.get('username')?.invalid && form.get('username')?.touched) { Wajib diisi }</span></div>
+        <div class="field"><label>Password (Opsional)</label><input type="password" formControlName="password" placeholder="Default: [username]123"></div>
+        <div class="field"><label>Peran</label><select formControlName="role"><option value="Admin Gudang">Admin Gudang</option><option value="Staf Gudang">Staf Gudang</option><option value="Pemilik">Pemilik</option></select></div>
+        <div class="field"><label>Gudang Ditugaskan *</label><div class="chip-list">@for (wh of warehouses(); track wh.id) { <button type="button" class="chip" [class.chip-on]="(form.get('warehouseIds')?.value ?? []).includes(wh.id)" (click)="toggleWarehouse(wh.id)">{{ wh.name }}</button> }</div><span class="err">@if (form.get('warehouseIds')?.invalid && form.get('warehouseIds')?.touched) { Pilih minimal 1 gudang }</span></div>
+        <div class="full right"><button class="btn" type="button" (click)="showForm.set(false)">Batal</button> <button class="btn primary" type="submit">Simpan Pengguna</button></div>
+      </form>
+    </section>
+  }
+
+  <section class="card">
+    <div class="toolbar">
+      <div class="search"><input #s placeholder="Cari nama atau username..." (input)="search.set(s.value)"></div>
+      <div class="filters">
+        <select (change)="roleFilter.set(($any($event.target).value))">
+          <option value="Semua Peran">Semua Peran</option>
+          <option value="Admin Gudang">Admin Gudang</option>
+          <option value="Staf Gudang">Staf Gudang</option>
+          <option value="Pemilik">Pemilik</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="fluid">
+        <thead>
+          <tr><th>PENGGUNA</th><th>USERNAME</th><th>PERAN</th><th>GUDANG DITUGASKAN</th><th>LOGIN TERAKHIR</th><th>STATUS</th><th>AKSI</th></tr>
+        </thead>
+        <tbody>
+          @for (user of visible(); track user.id) {
+            <tr>
+              <td>
+                <div class="item-cell">
+                  <div class="item-avatar">{{ user.fullName.substring(0, 2).toUpperCase() }}</div>
+                  <strong>{{ user.fullName }}</strong>
+                </div>
+              </td>
+              <td>{{ user.username }}</td>
+              <td><span class="pill" [class.blue]="user.role === 'Admin Gudang'" [class.gray]="user.role !== 'Admin Gudang'">{{ user.role }}</span></td>
+              <td>{{ warehouseNames(user.warehouseIds) }}</td>
+              <td>{{ user.lastLoginAt }}</td>
+              <td><span class="pill" [class.green]="user.isActive" [class.gray]="!user.isActive">{{ user.isActive ? 'Aktif' : 'Nonaktif' }}</span></td>
+              <td>
+                <button class="btn icon-only" style="padding:4px 8px;font-size:12px" (click)="resetPassword(user)" title="Reset Password">🔑</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="7" class="muted" style="text-align:center;padding:24px">Tidak ada pengguna ditemukan.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

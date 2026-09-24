@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GudangPro.Api/GudangPro.Api.csproj" />
+    <Project Path="src/GudangPro.Application/GudangPro.Application.csproj" />
+    <Project Path="src/GudangPro.Domain/GudangPro.Domain.csproj" />
+    <Project Path="src/GudangPro.Infrastructure/GudangPro.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GudangPro.Tests/GudangPro.Tests.csproj" />
+  </Folder>
+</Solution>

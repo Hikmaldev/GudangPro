@@ -1,0 +1,52 @@
+<div class="content">
+  <div class="page-head">
+    <div>
+      <h1>Data Gudang</h1>
+      <p>Kelola gudang dan cabang yang terhubung ke sistem.</p>
+    </div>
+    <button class="btn primary" (click)="showForm.set(true)">＋ Tambah Gudang</button>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><span>Total Gudang</span><strong>{{ totalWarehouses() }}</strong><small class="muted">Semua lokasi</small></div>
+    <div class="stat-card"><span>Gudang Aktif</span><strong>{{ activeWarehouses() }}</strong><small class="muted">Beroperasi</small></div>
+    <div class="stat-card"><span>Total Jenis Barang</span><strong>{{ totalItems().toLocaleString('id-ID') }}</strong><small class="muted">Di seluruh gudang</small></div>
+    <div class="stat-card"><span>Total Unit Stok</span><strong>{{ totalStock().toLocaleString('id-ID') }}</strong><small class="up">↑ 5.7% bulan ini</small></div>
+  </div>
+
+  @if (showForm()) {
+    <section class="card mb-20">
+      <div class="split"><h2>Tambah Gudang</h2><button class="btn" (click)="showForm.set(false)">Tutup</button></div>
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid mt-16">
+        <div class="field"><label>Kode Gudang *</label><input formControlName="code" placeholder="cth. GDG-CBB"><span class="err">@if (form.get('code')?.invalid && form.get('code')?.touched) { Kode wajib diisi }</span></div>
+        <div class="field"><label>Nama Gudang *</label><input formControlName="name" placeholder="Nama gudang"><span class="err">@if (form.get('name')?.invalid && form.get('name')?.touched) { Nama wajib diisi }</span></div>
+        <div class="field full"><label>Alamat *</label><input formControlName="address" placeholder="Alamat lengkap"><span class="err">@if (form.get('address')?.invalid && form.get('address')?.touched) { Alamat wajib diisi }</span></div>
+        <div class="full right"><button class="btn" type="button" (click)="showForm.set(false)">Batal</button> <button class="btn primary" type="submit">Simpan Gudang</button></div>
+      </form>
+    </section>
+  }
+
+  <section class="card">
+    <div class="toolbar">
+      <div class="search"><input #q placeholder="Cari kode atau nama gudang..." (input)="search.set(q.value)"></div>
+    </div>
+    <div class="table-wrap">
+      <table class="fluid">
+        <thead><tr><th>KODE</th><th>NAMA GUDANG</th><th>ALAMAT</th><th>JUMLAH BARANG</th><th>STATUS</th></tr></thead>
+        <tbody>
+          @for (wh of filtered(); track wh.id) {
+            <tr>
+              <td><strong>{{ wh.code }}</strong></td>
+              <td><strong>{{ wh.name }}</strong><span class="muted">Kode lokasi {{ wh.code }}</span></td>
+              <td>{{ wh.address }}</td>
+              <td>{{ wh.itemCount }} jenis</td>
+              <td><span class="pill" [class.green]="wh.isActive" [class.gray]="!wh.isActive">{{ wh.isActive ? 'Aktif' : 'Nonaktif' }}</span></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="muted" style="text-align:center;padding:30px">Tidak ada gudang ditemukan.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

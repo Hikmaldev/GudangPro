@@ -1,0 +1,31 @@
+<div class="content">
+  <div class="page-head">
+    <div>
+      <h1>Laporan</h1>
+      <p>Buat dan ekspor laporan inventori sesuai kebutuhan.</p>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><span>Nilai stok saat ini</span><strong>Rp 2.4M</strong><small class="muted">Semua gudang</small></div>
+    <div class="stat-card"><span>Transaksi bulan ini</span><strong>1,842</strong><small class="up">↑ 12.5% dari bulan lalu</small></div>
+    <div class="stat-card"><span>Stok masuk</span><strong>8,420</strong><small class="muted">Unit bulan ini</small></div>
+    <div class="stat-card"><span>Stok keluar</span><strong>7,980</strong><small class="muted">Unit bulan ini</small></div>
+  </div>
+
+  <section class="card">
+    <div class="toolbar"><h2>Pilih jenis laporan</h2></div>
+    <div class="grid-2">
+      <div class="card" style="background:#f9fbff">
+        <h2>Laporan Stok</h2>
+        <p class="card-sub">Ringkasan stok per barang dan gudang, termasuk stok minimum dan status alert.</p>
+        <button class="btn primary mt-20" (click)="exportStock()">Ekspor laporan →</button>
+      </div>
+      <div class="card" style="background:#f9fbff">
+        <h2>Laporan Transaksi</h2>
+        <p class="card-sub">Riwayat barang masuk, keluar, dan koreksi pada rentang tanggal tertentu.</p>
+        <button class="btn primary mt-20" (click)="exportTransactions()">Ekspor laporan →</button>
+      </div>
+    </div>
+  </section>
+</div>

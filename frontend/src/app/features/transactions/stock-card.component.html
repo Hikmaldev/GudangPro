@@ -1,0 +1,68 @@
+<div class="content">
+  <div class="page-head">
+    <div>
+      <h1>Kartu Stok</h1>
+      <p>Riwayat mutasi dan saldo stok per barang.</p>
+    </div>
+    <button class="btn" (click)="exportPdf()">↓ Ekspor PDF</button>
+  </div>
+
+  <section class="card">
+    <div class="form-grid">
+      <div class="field">
+        <label>PILIH BARANG</label>
+        <select (change)="onItemChange(+$any($event.target).value)">
+          @for (item of items(); track item.id) {
+            <option [value]="item.id" [selected]="item.id === selectedItemId()">
+              {{ item.name }} ({{ item.code }})
+            </option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label>GUDANG</label>
+        <select (change)="onWarehouseChange(+$any($event.target).value)">
+          @for (wh of warehouses(); track wh.id) {
+            <option [value]="wh.id" [selected]="wh.id === selectedWarehouseId()">
+              {{ wh.name }} ({{ wh.code }})
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <div class="stat-grid mt-20">
+    <div class="stat-card"><span>Saldo Awal</span><strong>{{ card().openingBalance }} {{ card().item.unitName }}</strong><small class="muted">Saldo periode</small></div>
+    <div class="stat-card"><span>Total Masuk</span><strong style="color:#20ad78">+{{ card().totalIncoming }} {{ card().item.unitName }}</strong><small class="muted">Semua transaksi masuk</small></div>
+    <div class="stat-card"><span>Total Keluar</span><strong style="color:#e3626e">−{{ card().totalOutgoing }} {{ card().item.unitName }}</strong><small class="muted">Semua transaksi keluar</small></div>
+    <div class="stat-card"><span>Saldo Akhir</span><strong>{{ card().closingBalance }} {{ card().item.unitName }}</strong><small [class.down]="status() === 'Kritis'" [class.warn]="status() === 'Menipis'">Stock min. {{ card().item.minStock }} {{ card().item.unitName }} · {{ status() }}</small></div>
+  </div>
+
+  <section class="card mt-20">
+    <div class="toolbar">
+      <h2>Mutasi stok — {{ card().item.name }}</h2>
+      <div class="filters"><input type="date" value="2026-09-01"><input type="date" value="2026-09-23"></div>
+    </div>
+    <div class="table-wrap">
+      <table class="fluid">
+        <thead>
+          <tr><th>TANGGAL</th><th>NOMOR TRANSAKSI</th><th>REFERENSI</th><th>MASUK</th><th>KELUAR</th><th>SALDO</th><th>DIBUAT OLEH</th></tr>
+        </thead>
+        <tbody>
+          @for (entry of card().entries; track $index) {
+            <tr>
+              <td>{{ entry.date }}</td>
+              <td><strong>{{ entry.transactionNo }}</strong></td>
+              <td>{{ entry.reference }}</td>
+              <td style="color:#20ad78">{{ entry.incoming ? '+' + entry.incoming : '—' }}</td>
+              <td style="color:#e3626e">{{ entry.outgoing ? '−' + entry.outgoing : '—' }}</td>
+              <td><strong>{{ entry.balance }} {{ card().item.unitName }}</strong></td>
+              <td>{{ entry.createdBy }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,6 @@
+@GudangPro.Api_HostAddress = http://localhost:5137
+
+GET {{GudangPro.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

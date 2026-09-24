@@ -1,0 +1,68 @@
+<div class="content">
+  <div class="page-head">
+    <div>
+      <h1>Barang Masuk</h1>
+      <p>Catat penerimaan barang ke gudang tujuan.</p>
+    </div>
+    <button class="btn" (click)="resetForm()">↻ Reset Form</button>
+  </div>
+
+  <div class="form-layout">
+    <section class="card">
+      <h2>Informasi Transaksi</h2>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label>Gudang Tujuan *</label>
+            <select formControlName="warehouseId">
+              @for (wh of warehouses(); track wh.id) { <option [value]="wh.id">{{ wh.name }}</option> }
+            </select>
+          </div>
+          <div class="field"><label>Tanggal Transaksi *</label><input type="date" formControlName="date"></div>
+          <div class="field"><label>Nomor Referensi *</label><input formControlName="reference" placeholder="Contoh: SJ-2026-0098"><span class="err">@if (form.get('reference')?.invalid && form.get('reference')?.touched) { Referensi wajib diisi }</span></div>
+          <div class="field"><label>Supplier / Sumber</label><input formControlName="supplier" placeholder="Nama supplier atau sumber barang"></div>
+          <div class="field full"><label>Catatan</label><textarea formControlName="notes" placeholder="Tambahkan catatan jika diperlukan..."></textarea></div>
+        </div>
+
+        <h2 class="mt-24">Daftar Barang</h2>
+        <div class="table-wrap line-table">
+          <table>
+            <thead><tr><th>BARANG</th><th>JUMLAH</th><th>SATUAN</th><th>CATATAN</th><th></th></tr></thead>
+            <tbody>
+              <ng-container formArrayName="lines">
+                @for (line of lines.controls; track $index) {
+                  <tr [formGroupName]="$index">
+                    <td>
+                      <select formControlName="itemId">
+                        <option value="">Pilih barang...</option>
+                        @for (item of items(); track item.id) { <option [value]="item.id">{{ item.name }} ({{ item.code }})</option> }
+                      </select>
+                    </td>
+                    <td><input type="number" formControlName="quantity" min="1" placeholder="0"></td>
+                    <td>{{ selectedUnit($index) }}</td>
+                    <td><input formControlName="note" placeholder="Opsional"></td>
+                    <td><button type="button" class="btn icon-only danger" (click)="removeLine($index)" aria-label="Hapus baris">×</button></td>
+                  </tr>
+                }
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+        <button type="button" class="btn mt-16" (click)="addLine()">＋ Tambah Barang</button>
+        <div class="right mt-24">
+          <button type="button" class="btn" (click)="toast.show('Transaksi disimpan sebagai draft')">Simpan Draft</button>
+          <button type="submit" class="btn primary">Simpan Transaksi</button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="card">
+      <h2>Petunjuk</h2>
+      <div class="notice mt-16">Pastikan jumlah barang lebih besar dari nol. Stok akan otomatis bertambah setelah transaksi berhasil disimpan.</div>
+      <h2 class="mt-24">Transaksi hari ini</h2>
+      <div class="mt-12">
+        <div class="stat-card"><span>Total barang masuk</span><strong>{{ todayTotal() }}</strong><small class="up">{{ todayCount() }} transaksi tercatat</small></div>
+      </div>
+    </aside>
+  </div>
+</div>

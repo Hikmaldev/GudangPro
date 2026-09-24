@@ -1,0 +1,45 @@
+<main class="login">
+  <section class="visual">
+    <div class="logo">Gudang<em>Pro</em></div>
+    <h1>Kelola inventori dengan lebih mudah.</h1>
+    <p>Pantau stok, catat transaksi, dan dapatkan peringatan sebelum barang habis.</p>
+    <small>© 2026 GudangPro. Sistem Manajemen Inventori.</small>
+  </section>
+  <section class="form">
+    <h2>Selamat datang kembali</h2>
+    <p>Masuk untuk mengakses dashboard inventori Anda.</p>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label>USERNAME</label>
+        <input type="text" formControlName="username" placeholder="Masukkan username">
+        @if (form.get('username')?.invalid && form.get('username')?.touched) {
+          <span class="err">Username wajib diisi</span>
+        }
+      </div>
+      <div class="field">
+        <label>PASSWORD</label>
+        <div class="password">
+          <input type="password" formControlName="password" placeholder="Masukkan password">
+        </div>
+        @if (form.get('password')?.invalid && form.get('password')?.touched) {
+          <span class="err">Password minimal 4 karakter</span>
+        }
+      </div>
+      <div class="options">
+        <label class="check">
+          <input type="checkbox" formControlName="remember"> Ingat saya
+        </label>
+        <a href="#">Lupa password?</a>
+      </div>
+      <button type="submit" class="submit" [disabled]="loading()">
+        {{ loading() ? 'Memproses...' : 'Masuk ke Dashboard' }}
+      </button>
+      <p class="hint">Akses dibatasi berdasarkan peran pengguna.</p>
+    </form>
+    <div class="demo-creds">
+      <strong>Akun demo</strong>
+      <span>admin / admin123 — Admin Gudang</span>
+      <span>sari / sari123 — Staf Gudang</span>
+    </div>
+  </section>
+</main>
