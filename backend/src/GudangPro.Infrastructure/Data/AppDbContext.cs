@@ -89,8 +89,15 @@ public class AppDbContext : DbContext
             b.HasOne(s => s.Item).WithMany(i => i.StockLevels).HasForeignKey(s => s.ItemId).OnDelete(DeleteBehavior.Cascade);
             b.HasOne(s => s.Warehouse).WithMany(w => w.StockLevels).HasForeignKey(s => s.WarehouseId).OnDelete(DeleteBehavior.Cascade);
 
-            // Concurrency token via rowversion (PRD §9.3, §10.3)
-            b.Property(s => s.RowVersion).IsRowVersion();
+            // Concurrency token (PostgreSQL vs SQL Server)
+            if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
+            {
+                b.Property(s => s.RowVersion).IsConcurrencyToken();
+            }
+            else
+            {
+                b.Property(s => s.RowVersion).IsRowVersion();
+            }
         });
 
         // StockTransaction

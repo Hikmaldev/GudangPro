@@ -15,6 +15,13 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    // Support dynamic PORT environment variable (Render, Railway, Koyeb, etc.)
+    var port = Environment.GetEnvironmentVariable("PORT");
+    if (!string.IsNullOrEmpty(port))
+    {
+        builder.WebHost.UseUrls($"http://+:{port}");
+    }
+
     // Serilog (PRD §10.1)
     builder.Services.AddSerilog((services, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)
@@ -22,12 +29,23 @@ try
         .Enrich.FromLogContext()
         .WriteTo.Console());
 
-    // DbContext + SQL Server LocalDB (PRD §10.1, §10.2)
+    // DbContext: Support both PostgreSQL (Supabase/Neon) and SQL Server
     var connString = builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlServer(connString, sql => sql.MigrationsAssembly("GudangPro.Infrastructure")));
+    {
+        if (connString.Contains("Host=", StringComparison.OrdinalIgnoreCase) ||
+            connString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+            connString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            options.UseNpgsql(connString, sql => sql.MigrationsAssembly("GudangPro.Infrastructure"));
+        }
+        else
+        {
+            options.UseSqlServer(connString, sql => sql.MigrationsAssembly("GudangPro.Infrastructure"));
+        }
+    });
 
     // Application Services DI
     builder.Services.AddScoped<IAuditService, AuditService>();
@@ -66,10 +84,18 @@ try
     {
         options.AddPolicy("AllowFrontend", policy =>
         {
-            policy.WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
+            policy.SetIsOriginAllowed(origin =>
+            {
+                if (string.IsNullOrEmpty(origin)) return false;
+                var uri = new Uri(origin);
+                return uri.Host == "localhost" 
+                    || uri.Host == "127.0.0.1" 
+                    || uri.Host.EndsWith("vercel.app") 
+                    || uri.Host.EndsWith("onrender.com");
+            })
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
         });
     });
 
@@ -113,15 +139,13 @@ try
         await DbInitializer.SeedAsync(db);
     }
 
-    if (app.Environment.IsDevelopment())
+    // Swagger UI enabled for demo testing
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
     {
-        app.UseSwagger();
-        app.UseSwaggerUI(c =>
-        {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "GudangPro API v1");
-            c.RoutePrefix = string.Empty; // Swagger di root (http://localhost:5000/)
-        });
-    }
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "GudangPro API v1");
+        c.RoutePrefix = string.Empty; // Swagger di root
+    });
 
     app.UseCors("AllowFrontend");
 
