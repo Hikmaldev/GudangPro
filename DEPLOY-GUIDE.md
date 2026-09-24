@@ -72,8 +72,8 @@ Backend C# .NET 10 membutuhkan host yang dapat menjalankan Docker. **Render.com*
    - **Region:** `Singapore (Southeast Asia)`
    - **Language:** Pilih **Docker**
    - **Branch:** `main`
-   - **Root Directory:** Kosongkan (atau isi `.`)
-   - **Dockerfile Path:** `backend/Dockerfile`
+   - **Root Directory:** `backend`
+   - **Dockerfile Path:** `Dockerfile` (atau kosongkan, Render akan mendeteksi otomatis)
    - **Instance Type:** Pilih **Free** ($0/month)
 6. Masukkan **Environment Variables**:
    Gulir ke bagian **Environment Variables**, klik **Add Environment Variable**:
