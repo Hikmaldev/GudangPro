@@ -37,35 +37,9 @@ try
                      connString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
                      connString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase);
 
-    if (isPostgres && (connString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
-                       connString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase)))
+    if (isPostgres)
     {
-        try
-        {
-            var uri = new Uri(connString);
-            var userInfo = uri.UserInfo.Split(':', 2);
-            var username = Uri.UnescapeDataString(userInfo[0]);
-            var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
-            var host = uri.Host;
-            var dbPort = uri.Port > 0 ? uri.Port : 5432;
-            var database = uri.AbsolutePath.TrimStart('/');
-            if (string.IsNullOrEmpty(database)) database = "postgres";
-
-            var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
-            {
-                Host = host,
-                Port = dbPort,
-                Database = database,
-                Username = username,
-                Password = password,
-                SslMode = Npgsql.SslMode.Require
-            };
-            connString = npgsqlBuilder.ConnectionString;
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to parse postgresql URI, using raw connection string");
-        }
+        connString = NormalizePostgresConnectionString(connString);
     }
 
     if (connString.Contains("db.", StringComparison.OrdinalIgnoreCase) && connString.Contains(".supabase.co", StringComparison.OrdinalIgnoreCase))
@@ -199,6 +173,31 @@ try
 
     app.MapControllers();
 
+    // Health & DB connectivity check endpoint
+    app.MapGet("/api/health", async (AppDbContext db) =>
+    {
+        try
+        {
+            var canConnect = await db.Database.CanConnectAsync();
+            return Results.Ok(new
+            {
+                status = canConnect ? "Healthy" : "DatabaseUnreachable",
+                database = canConnect ? "Connected" : "Cannot Connect",
+                provider = db.Database.ProviderName,
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new
+            {
+                status = "DatabaseError",
+                error = ex.Message,
+                timestamp = DateTime.UtcNow
+            }, statusCode: 503);
+        }
+    });
+
     var serverPort = Environment.GetEnvironmentVariable("PORT") ?? "5000";
     Log.Information("GudangPro API listening on http://0.0.0.0:{Port}", serverPort);
     app.Run($"http://0.0.0.0:{serverPort}");
@@ -210,4 +209,69 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
+}
+
+static string NormalizePostgresConnectionString(string input)
+{
+    if (string.IsNullOrWhiteSpace(input)) return input;
+
+    // Check if it's a URI format (postgres:// or postgresql://)
+    if (input.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+        input.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+    {
+        try
+        {
+            var uri = new Uri(input);
+            var userInfo = uri.UserInfo.Split(':', 2);
+            var username = Uri.UnescapeDataString(userInfo[0]);
+            var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+
+            // Auto-trim square brackets if user wrote [YOUR-PASSWORD] or [mypassword]
+            if (password.StartsWith("[") && password.EndsWith("]") && password.Length >= 2)
+            {
+                password = password[1..^1];
+            }
+
+            if (password.Equals("YOUR-PASSWORD", StringComparison.OrdinalIgnoreCase))
+            {
+                Log.Warning("Supabase password is still set to placeholder 'YOUR-PASSWORD'!");
+            }
+
+            var host = uri.Host;
+            var dbPort = uri.Port > 0 ? uri.Port : 5432;
+            var database = uri.AbsolutePath.TrimStart('/');
+            if (string.IsNullOrEmpty(database)) database = "postgres";
+
+            var builder = new Npgsql.NpgsqlConnectionStringBuilder
+            {
+                Host = host,
+                Port = dbPort,
+                Database = database,
+                Username = username,
+                Password = password,
+                SslMode = Npgsql.SslMode.Require
+            };
+            return builder.ConnectionString;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to parse postgresql URI, falling back to ADO.NET builder");
+        }
+    }
+
+    // If it's ADO.NET key=value format (e.g. Host=...;Username=...;Password=...)
+    try
+    {
+        var builder = new Npgsql.NpgsqlConnectionStringBuilder(input);
+        if (!string.IsNullOrEmpty(builder.Password) && builder.Password.StartsWith("[") && builder.Password.EndsWith("]") && builder.Password.Length >= 2)
+        {
+            builder.Password = builder.Password[1..^1];
+        }
+        builder.SslMode = Npgsql.SslMode.Require;
+        return builder.ConnectionString;
+    }
+    catch
+    {
+        return input;
+    }
 }
